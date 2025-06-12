@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from .db import db
+from sqlalchemy import text
 from .cache import cache
 import time
 
@@ -12,9 +13,12 @@ def home():
 @main.route('/random-queries')
 def random_queries():
     n = int(request.args.get('n', 10))
-    start = time.time()
-    results = db.session.execute(f"SELECT * FROM earthquakes ORDER BY RANDOM() LIMIT {n}").fetchall()
-    return jsonify({"time": time.time() - start, "results": [dict(r) for r in results]})
+    query = text("SELECT * FROM earthquakes ORDER BY RANDOM() LIMIT :limit")
+    results = db.session.execute(query, {"limit": n}).fetchall()
+    return jsonify({
+        "count": len(results),
+        "results": [dict(row._mapping) for row in results]
+    })
 
 @main.route('/filtered')
 @cache.cached(timeout=60, query_string=True)
