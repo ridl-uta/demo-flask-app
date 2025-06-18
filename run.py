@@ -3,9 +3,14 @@ from app.importer import import_earthquake_data
 from sqlalchemy.exc import OperationalError
 from app.db import db
 import time
+import logging
 
 
 app = create_app()
+logging.basicConfig(level=logging.DEBUG)
+
+# Enable Redis-specific cache backend logging
+logging.getLogger("flask_caching.backends.rediscache").setLevel(logging.DEBUG)
 
 for i in range(10):  # Retry 10 times with 3s delay
     try:
@@ -24,4 +29,4 @@ else:
     raise RuntimeError("Failed to connect to the database after multiple attempts.")
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0',debug=True)
